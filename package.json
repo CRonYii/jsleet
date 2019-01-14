@@ -1,0 +1,28 @@
+{
+  "name": "jsleet",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bin": {
+    "jsleet": "dist/index.js"
+  },
+  "scripts": {
+    "start": "node dist/index.js",
+    "watch": "babel --watch src -d dist",
+    "build": "babel src -d dist && npm link"
+  },
+  "author": "Rongyi Chen",
+  "devDependencies": {
+    "nodemon": "^1.18.9",
+    "@babel/cli": "^7.1.5",
+    "@babel/core": "^7.1.6",
+    "@babel/node": "^7.0.0",
+    "@babel/preset-env": "^7.1.6"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "chalk": "^2.4.2",
+    "cli-table": "^0.3.1",
+    "commander": "^2.19.0"
+  }
+}
