@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import program from 'commander';
-import { formatQuestion, formatQuestions, getProblemSet } from './datautil';
+import prompts from 'prompts';
+import { formatQuestions, getProblemSet } from './datautil';
 
 program
     .version('0.1.0', '-v, --version');
@@ -11,7 +12,14 @@ program
     .action(async (id) => {
         const problemSet = await getProblemSet();
         const problem = problemSet.id(id);
-        console.log(formatQuestion(problem));
+
+        console.log(formatQuestions([problem]));
+        const res = await prompts({
+            type: 'text',
+            name: 'confirm',
+            message: 'Create workspace for this leetcode problem? (y/n)',
+            validate: confirm => ['y', 'yes', 'n', 'no'].indexOf(confirm) > -1 ? true : 'Invalid Answer'
+        });
     })
 
 program
@@ -34,8 +42,8 @@ program
             .difficulty(options.diff)
             .onlyNew(options.new)
             .onlyFree(options.free)
-            .limit(options.limit || 20)
             .sort(options.sort, options.order)
+            .limit(options.limit || 20)
             .result();
 
         console.log(formatQuestions(result));

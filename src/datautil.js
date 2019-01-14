@@ -110,7 +110,6 @@ class LeetProblemSet {
     }
 
     sort(method, order) {
-        console.log(method);
         if (!method || method === 'id' || method === 'i') {
             this.filteredSet.sort((a, b) => {
                 const v = a.stat.frontend_question_id - b.stat.frontend_question_id;
