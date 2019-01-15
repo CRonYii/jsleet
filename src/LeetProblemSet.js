@@ -1,11 +1,14 @@
 import Table from 'cli-table';
 import { flow } from "./flow";
+import chalk from 'chalk';
+import { runInNewContext } from 'vm';
 
+// TODO: Add Caching
 export class LeetProblemSet {
 
     static formatQuestions = (qs) => {
         const table = new Table({
-            head: ['ID', 'Title', 'Difficulty', 'Acceptance (%)'],
+            head: ['ID', 'Title', 'Difficulty', 'Acceptance (%)', 'Free'],
             style: { head: ['cyan'] }
         });
         qs.forEach((q) => {
@@ -18,7 +21,7 @@ export class LeetProblemSet {
         const diff = {
             1: 'easy', 2: 'medium', 3: 'hard'
         }[q.difficulty.level];
-        return [q.stat.frontend_question_id, q.stat.question__title, diff, (q.stat.total_acs / q.stat.total_submitted * 100).toFixed(2) + '%'];
+        return [q.stat.frontend_question_id, q.stat.question__title, diff, (q.stat.total_acs / q.stat.total_submitted * 100).toFixed(2) + '%', q.paid_only ? chalk.red('✘') : chalk.green('✔')];
     }
 
     constructor(problemSet) {
@@ -26,8 +29,27 @@ export class LeetProblemSet {
         this.reset();
     }
 
-    random() {
-        return this.problemSet[Math.floor(Math.random() * this.problemSet.length)];
+    random(number) {
+        if (!number) {
+            return this;
+        }
+
+        number = typeof number === 'number' ? number || 1 : 1;
+
+        if (number >= this.filteredSet.length) {
+            return this;
+        }
+
+        const set = new Set();
+        while (set.size !== number)
+            set.add(this.filteredSet[Math.floor(Math.random() * this.filteredSet.length)]);
+
+        this.filteredSet = [];
+        set.forEach((v) => {
+            this.filteredSet.push(v);
+        });
+
+        return this;
     }
 
     id(qid) {
