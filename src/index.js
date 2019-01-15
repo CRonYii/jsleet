@@ -1,31 +1,63 @@
 #!/usr/bin/env node
 import program from 'commander';
 import prompts from 'prompts';
-import { formatQuestions, getProblemSet } from './datautil';
+import { LeetProblemSet } from './LeetProblemSet';
+import { ApiUtil } from './ApiUtil';
+import { LocalUtil } from './LocalUtil';
+import { flow } from './flow';
 
 program
     .version('0.1.0', '-v, --version');
 
 program
-    .command('init <id>')
-    .description('Initialize a leetcode problem with the given question id.')
+    .command('init [id]')
+    .description('Initialize a leetcode problem with the given question id, or a random problem if no id is given.')
     .action(async (id) => {
-        const problemSet = await getProblemSet();
-        const problem = problemSet.id(id);
+        const problemSet = await ApiUtil.getProblemSet();
 
-        console.log(formatQuestions([problem]));
-        const res = await prompts({
+        let problem;
+        if (id) {
+            problem = problemSet.id(id);
+        } else {
+            problem = problemSet.random();
+        }
+
+        console.log(LeetProblemSet.formatQuestions([problem]));
+        const { confirm } = await prompts({
             type: 'text',
             name: 'confirm',
             message: 'Create workspace for this leetcode problem? (y/n)',
             validate: confirm => ['y', 'yes', 'n', 'no'].indexOf(confirm) > -1 ? true : 'Invalid Answer'
         });
+        if (['y', 'yes'].indexOf(confirm) > -1) {
+            const title = problem.stat.question__title_slug;
+            const qData = await ApiUtil.getQuestion(title);
+
+            const { lang } = await prompts([{
+                type: 'select',
+                name: 'lang',
+                message: 'What Language would you like to use?',
+                choices: [{ title: 'Cancel', value: 'Cancelled' }].concat(qData.codeSnippets.map(v => ({ title: v.lang, value: v.lang })))
+            }]);
+
+            console.log(lang);
+
+            if (lang === 'Cancelled') {
+                return
+            }
+
+            const succceed = await LocalUtil.createWorkspace(qData, lang);
+            if (succceed) {
+                flow.info(`Succesfully created ${lang} workspace for "${qData.title}"`);
+            }
+        }
     })
 
 program
     .command('search [title]')
     .description('Search Leetcode Problem with given constraints.')
     .option('-l, --limit <limit>', 'The number of result to show per search.')
+    .option('-r, --random', 'Randomly select a question.')
     .option('-d, --diff <diff>', 'Question difficulty (easy|medium|hard)/(1|2|3).')
     .option('-s, --sort <sort>', 'Sort the problems by given method. [id/acceptance](you may only input the initial)')
     .option('-o, --order <order>', 'The order that the problem display. [asc/desc](you may only input the initial)')
@@ -36,17 +68,22 @@ program
         return val === 'no' ? false : true;
     })
     .action(async (title, options) => {
-        const problemSet = await getProblemSet();
-        const result = problemSet
-            .title(title)
-            .difficulty(options.diff)
-            .onlyNew(options.new)
-            .onlyFree(options.free)
-            .sort(options.sort, options.order)
-            .limit(options.limit || 20)
-            .result();
+        const problemSet = await ApiUtil.getProblemSet();
+        let result;
+        if (options.random) {
+            result = [problemSet.random()];
+        } else {
+            result = problemSet
+                .title(title)
+                .difficulty(options.diff)
+                .onlyNew(options.new)
+                .onlyFree(options.free)
+                .sort(options.sort, options.order)
+                .limit(options.limit || 10)
+                .result();
+        }
 
-        console.log(formatQuestions(result));
+        console.log(LeetProblemSet.formatQuestions(result));
     })
 
 program.parse(process.argv);

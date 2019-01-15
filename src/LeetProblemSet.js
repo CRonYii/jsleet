@@ -1,41 +1,33 @@
-import Axios from "axios";
 import Table from 'cli-table';
 import { flow } from "./flow";
-import chalk from "chalk";
 
-export const getProblemSet = async () => {
-    const problemSet = await Axios.get("https://leetcode.com/api/problems/all/")
-        .then((res) => {
-            return res.data.stat_status_pairs;
-        })
-        .catch((e) => console.error('When fetching problem set from leetcode.' + e));
+export class LeetProblemSet {
 
-    return new LeetProblemSet(problemSet);
-}
+    static formatQuestions = (qs) => {
+        const table = new Table({
+            head: ['ID', 'Title', 'Difficulty', 'Acceptance (%)'],
+            style: { head: ['cyan'] }
+        });
+        qs.forEach((q) => {
+            table.push(LeetProblemSet.formatQuestion(q));
+        });
+        return table.toString();
+    }
 
-export const formatQuestions = (qs) => {
-    const table = new Table({
-        head: ['ID', 'Title', 'Difficulty', 'Acceptance (%)'],
-        style: { head: ['cyan'] }
-    });
-    qs.forEach((q) => {
-        table.push(formatQuestion(q));
-    });
-    return table.toString();
-}
-
-export const formatQuestion = (q) => {
-    const diff = {
-        1: 'easy', 2: 'medium', 3: 'hard'
-    }[q.difficulty.level];
-    return [q.stat.frontend_question_id, q.stat.question__title, diff, (q.stat.total_acs / q.stat.total_submitted * 100).toFixed(2) + '%'];
-}
-
-class LeetProblemSet {
+    static formatQuestion = (q) => {
+        const diff = {
+            1: 'easy', 2: 'medium', 3: 'hard'
+        }[q.difficulty.level];
+        return [q.stat.frontend_question_id, q.stat.question__title, diff, (q.stat.total_acs / q.stat.total_submitted * 100).toFixed(2) + '%'];
+    }
 
     constructor(problemSet) {
         this.problemSet = problemSet;
         this.reset();
+    }
+
+    random() {
+        return this.problemSet[Math.floor(Math.random() * this.problemSet.length)];
     }
 
     id(qid) {
