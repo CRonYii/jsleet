@@ -37,7 +37,7 @@ export class LocalUtil {
             .then(() => true)
             .catch(e => flow.error(e));
 
-        const writeDescFile = fs.writeFile(path + '/' + 'Description.md', `<p><a>https://leetcode.com/problems/${titleSlug}/</a></p>` + qData.content, 'utf8')
+        const writeDescFile = fs.writeFile(path + '/' + 'Description.md', `<p><a href="https://leetcode.com/problems/${titleSlug}/">Open the Leetcode Problem</a></p>` + qData.content, 'utf8')
             .then(() => true)
             .catch(e => flow.error(e));
 
