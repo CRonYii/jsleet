@@ -20,7 +20,9 @@ program
         if (id) {
             problem = problemSet.id(id);
         } else {
-            problem = problemSet.random();
+            problem = problemSet
+                .onlyFree(true)
+                .random(1).result()[0];
         }
 
         console.log(LeetProblemSet.formatQuestions([problem]));
@@ -38,7 +40,14 @@ program
                 type: 'select',
                 name: 'lang',
                 message: 'What Language would you like to use?',
-                choices: [{ title: chalk.red('Cancel'), value: 'Cancelled' }].concat(qData.codeSnippets.map(v => ({ title: chalk.cyan(v.lang), value: v.lang })))
+                choices: [{ title: chalk.red('Cancel'), value: 'Cancelled' }]
+                    .concat(qData.codeSnippets ?
+                        qData.codeSnippets.map(v => ({
+                            title: chalk.cyan(v.lang),
+                            value: v.lang
+                        }))
+                        : []
+                    )
             }]);
 
             console.log(lang);
@@ -58,7 +67,7 @@ program
     .command('search [title]')
     .description('Search Leetcode Problem with given constraints.')
     .option('-l, --limit <limit>', 'The number of result to show per search.')
-    .option('-r, --random', 'Randomly select a question.')
+    .option('-r, --random [number]', 'Randomly select a question.', parseInt)
     .option('-d, --diff <diff>', 'Question difficulty (easy|medium|hard)/(1|2|3).')
     .option('-s, --sort <sort>', 'Sort the problems by given method. [id/acceptance](you may only input the initial)')
     .option('-o, --order <order>', 'The order that the problem display. [asc/desc](you may only input the initial)')
@@ -71,18 +80,16 @@ program
     .action(async (title, options) => {
         const problemSet = await ApiUtil.getProblemSet();
         let result;
-        if (options.random) {
-            result = [problemSet.random()];
-        } else {
-            result = problemSet
-                .title(title)
-                .difficulty(options.diff)
-                .onlyNew(options.new)
-                .onlyFree(options.free)
-                .sort(options.sort, options.order)
-                .limit(options.limit || 10)
-                .result();
-        }
+
+        result = problemSet
+            .title(title)
+            .difficulty(options.diff)
+            .onlyNew(options.new)
+            .onlyFree(options.free)
+            .random(options.random)
+            .sort(options.sort, options.order)
+            .limit(options.limit || 10)
+            .result();
 
         console.log(LeetProblemSet.formatQuestions(result));
     })
