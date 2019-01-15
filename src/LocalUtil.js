@@ -1,6 +1,5 @@
 import fs from 'fs-extra';
 import { flow } from './flow';
-
 export class LocalUtil {
 
     static languageExtensionMap = {
@@ -34,9 +33,15 @@ export class LocalUtil {
 
         const codeSnippet = qData.codeSnippets.find(v => v.lang == lang).code;
 
-        return fs.writeFile(path + '/' + titleSlug + LocalUtil.languageExtensionMap[lang], codeSnippet, 'utf8')
+        const writeCodeFile = fs.writeFile(path + '/' + titleSlug + LocalUtil.languageExtensionMap[lang], codeSnippet, 'utf8')
             .then(() => true)
             .catch(e => flow.error(e));
+
+        const writeDescFile = fs.writeFile(path + '/' + 'Description.md', `<p><a>https://leetcode.com/problems/${titleSlug}/</a></p>` + qData.content, 'utf8')
+            .then(() => true)
+            .catch(e => flow.error(e));
+
+        return Promise.all([writeCodeFile, writeDescFile]).then(arr => arr.every(v => v === true));
     }
 
     static async createFolder(path) {
