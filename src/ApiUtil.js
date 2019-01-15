@@ -27,7 +27,7 @@ export class ApiUtil {
             headers: {
                 'referer': `https://leetcode.com/problems/${title}/`,
                 'Content-Type': 'application/json',
-                'x-csrftoken': '6YeEXsJkbSOleHmDD6yBZTNcMKiJ0iWEqtgTolbs2le8bkqf3U2da8tUBvkhAoPr'
+                'x-csrftoken': await ApiUtil.getCSRFToken()
             }
         })
             .then((res) => {
@@ -49,6 +49,22 @@ export class ApiUtil {
                 spinner.stop(true);
             });
 
+    }
+
+    static async getCSRFToken() {
+        return Axios.get('https://leetcode.com/problems/two-sum/')
+            .then(res => {
+                return res.headers['set-cookie'].map(c => {
+                    const i = c.indexOf('=');
+                    return {
+                        name: c.substring(0, i),
+                        value: c.substring(i + 1)
+                    }
+                })
+                .find(v => v.name === 'csrftoken')
+                .value;
+            })
+            .catch(e => flow.error(e));
     }
 
 }
