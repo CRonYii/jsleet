@@ -5,6 +5,7 @@ import { LeetProblemSet } from './LeetProblemSet';
 import { ApiUtil } from './ApiUtil';
 import { LocalUtil } from './LocalUtil';
 import { flow } from './flow';
+import chalk from 'chalk';
 
 program
     .version('0.1.0', '-v, --version');
@@ -37,7 +38,7 @@ program
                 type: 'select',
                 name: 'lang',
                 message: 'What Language would you like to use?',
-                choices: [{ title: 'Cancel', value: 'Cancelled' }].concat(qData.codeSnippets.map(v => ({ title: v.lang, value: v.lang })))
+                choices: [{ title: chalk.red('Cancel'), value: 'Cancelled' }].concat(qData.codeSnippets.map(v => ({ title: chalk.cyan(v.lang), value: v.lang })))
             }]);
 
             console.log(lang);
